@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bien Chez Soi — Soumission</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #1B2A4A;
+            --navy-light: #2d4a7c;
+            --gold: #C8A96E;
+            --gold-light: #e8d5b0;
+            --cream: #F4F1EC;
+            --green: #2D6A4F;
+            --green-light: #d1fae5;
+            --gray: #6B7280;
+            --gray-light: #e5e7eb;
+            --red: #DC2626;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--cream);
+            color: var(--navy);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+
+        .container { max-width: 520px; margin: 0 auto; padding: 15px; }
+
+        /* Header */
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            color: white;
+            border-radius: 0 0 24px 24px;
+            margin: -15px -15px 20px -15px;
+            padding: 30px 15px 25px;
+            position: relative;
+        }
+        header h1 { font-size: 30px; font-weight: 700; letter-spacing: 2px; }
+        .subtitle { color: var(--gold); font-size: 13px; margin-top: 5px; }
+
+        /* Lang toggle */
+        .lang-toggle {
+            position: absolute; top: 15px; right: 15px;
+            display: flex; gap: 4px;
+        }
+        .lang-btn {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+            color: white; padding: 5px 10px; border-radius: 8px; font-size: 12px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .lang-btn.active { background: var(--gold); color: var(--navy); border-color: var(--gold); font-weight: 700; }
+
+        /* Nav tabs */
+        .nav-tabs {
+            display: flex; gap: 8px; margin-bottom: 15px;
+        }
+        .nav-tab {
+            flex: 1; padding: 10px; border: 2px solid var(--gray-light);
+            border-radius: 12px; background: white; text-align: center;
+            font-size: 13px; cursor: pointer; transition: all 0.2s; font-weight: 600;
+        }
+        .nav-tab.active { border-color: var(--navy); background: var(--navy); color: white; }
+
+        /* Cards */
+        .card {
+            background: white; border-radius: 16px; padding: 20px;
+            margin: 12px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .card h3 {
+            font-size: 13px; color: var(--gray); text-transform: uppercase;
+            letter-spacing: 1px; margin-bottom: 15px;
+        }
+
+        /* Record button */
+        .record-container { display: flex; flex-direction: column; align-items: center; padding: 25px 0; }
+        .record-btn {
+            width: 130px; height: 130px; border-radius: 50%; border: none;
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            color: white; font-size: 15px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 25px rgba(27,42,74,0.3);
+        }
+        .record-btn:active { transform: scale(0.95); }
+        .record-btn.recording {
+            background: linear-gradient(135deg, var(--red), #b91c1c);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.4); }
+            50% { box-shadow: 0 0 0 25px rgba(220,38,38,0); }
+        }
+        .record-btn .icon { font-size: 44px; margin-bottom: 4px; }
+        .record-hint { color: var(--gray); font-size: 13px; text-align: center; margin-top: 18px; line-height: 1.5; }
+
+        /* Transcription */
+        .transcription {
+            background: var(--cream); border-radius: 12px; padding: 15px;
+            min-height: 70px; font-size: 14px; line-height: 1.6; color: #374151;
+        }
+
+        /* Form */
+        .field { margin: 12px 0; }
+        .field label {
+            display: block; font-size: 11px; color: var(--gray);
+            margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .field input, .field select, .field textarea {
+            width: 100%; padding: 13px; border: 2px solid var(--gray-light);
+            border-radius: 12px; font-size: 16px; transition: border-color 0.2s; background: white;
+        }
+        .field input:focus, .field select:focus, .field textarea:focus {
+            outline: none; border-color: var(--navy);
+        }
+        .field textarea { min-height: 70px; resize: vertical; }
+
+        /* Add-ons */
+        .addons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .addon {
+            padding: 10px; border: 2px solid var(--gray-light); border-radius: 12px;
+            font-size: 12px; cursor: pointer; text-align: center;
+            transition: all 0.2s; background: white;
+        }
+        .addon:active { transform: scale(0.98); }
+        .addon.selected { background: var(--cream); border-color: var(--gold); }
+        .addon .name { font-weight: 600; color: #374151; }
+        .addon .price { color: var(--green); font-weight: 700; font-size: 13px; margin-top: 3px; }
+
+        /* Totals */
+        .totals {
+            background: linear-gradient(135deg, var(--navy), var(--navy-light));
+            color: white; border-radius: 16px; padding: 18px;
+        }
+        .totals .row { display: flex; justify-content: space-between; padding: 7px 0; font-size: 14px; }
+        .totals .row.total {
+            font-size: 22px; font-weight: 700;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding-top: 12px; margin-top: 8px;
+        }
+        .totals .row.total .amount { color: var(--gold); }
+
+        /* Buttons */
+        .btn {
+            width: 100%; padding: 15px; border: none; border-radius: 12px;
+            font-size: 15px; font-weight: 600; cursor: pointer; margin: 6px 0;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green), #1e5631);
+            color: white; box-shadow: 0 4px 15px rgba(45,106,79,0.3);
+        }
+        .btn-secondary { background: var(--gray-light); color: var(--navy); }
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #b8944f);
+            color: var(--navy); box-shadow: 0 4px 15px rgba(200,169,110,0.3);
+        }
+        .btn-outline { background: transparent; border: 2px solid var(--navy); color: var(--navy); }
+
+        /* Signature canvas */
+        .signature-container {
+            border: 2px dashed var(--gray-light); border-radius: 12px;
+            position: relative; background: white; touch-action: none;
+        }
+        .signature-canvas { width: 100%; height: 150px; display: block; border-radius: 10px; }
+        .sig-clear {
+            position: absolute; top: 8px; right: 8px; background: var(--gray-light);
+            border: none; border-radius: 8px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+        }
+
+        /* Loading */
+        .loading { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .spinner {
+            width: 45px; height: 45px; border: 4px solid var(--gray-light);
+            border-top-color: var(--navy); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Alerts */
+        .alert { padding: 14px; border-radius: 12px; margin: 12px 0; font-size: 14px; }
+        .alert-error { background: #fee2e2; color: #b91c1c; }
+        .alert-success { background: var(--green-light); color: var(--green); }
+
+        /* History */
+        .history-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px; border-bottom: 1px solid var(--gray-light);
+            cursor: pointer; transition: background 0.2s;
+        }
+        .history-item:hover { background: var(--cream); }
+        .history-item:last-child { border-bottom: none; }
+        .history-title { font-weight: 600; font-size: 14px; }
+        .history-meta { font-size: 12px; color: var(--gray); margin-top: 3px; }
+        .history-total { font-weight: 700; color: var(--green); font-size: 15px; }
+        .history-status {
+            display: inline-block; padding: 3px 8px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+        }
+        .status-Brouillon { background: #fef3c7; color: #92400e; }
+        .status-Envoyée { background: #dbeafe; color: #1e40af; }
+        .status-Acceptée { background: var(--green-light); color: var(--green); }
+        .status-Refusée { background: #fee2e2; color: #b91c1c; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="lang-toggle">
+            <button class="lang-btn active" onclick="setLang('fr')">FR</button>
+            <button class="lang-btn" onclick="setLang('en')">EN</button>
+        </div>
+        <h1>Bien Chez Soi</h1>
+        <p class="subtitle" id="headerSubtitle">Soumission vocale</p>
+    </header>
+
+    <!-- Nav -->
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="showTab('quote')" id="tabQuote">Soumission</div>
+        <div class="nav-tab" onclick="showTab('history')" id="tabHistory">Historique</div>
+    </div>
+
+    <div id="alertContainer"></div>
+
+    <!-- ==================== TAB: SOUMISSION ==================== -->
+    <div id="tabContentQuote">
+
+        <!-- Étape 1: Enregistrement -->
+        <div id="step1">
+            <div class="card">
+                <div class="record-container">
+                    <button class="record-btn" id="recordBtn">
+                        <span class="icon">🎤</span>
+                        <span id="recordText">Appuyer</span>
+                    </button>
+                    <p class="record-hint" id="recordHint">
+                        Décrivez le service demandé:<br>
+                        nom du client, adresse, type de service, durée estimée
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="card hidden">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Analyse en cours...</p>
+            </div>
+        </div>
+
+        <!-- Étape 2: Vérification -->
+        <div id="step2" class="hidden">
+
+            <div class="card">
+                <h3>📝 Transcription</h3>
+                <div class="transcription" id="transcriptionText"></div>
+            </div>
+
+            <!-- Client -->
+            <div class="card">
+                <h3 id="labelClient">👤 Client</h3>
+                <div class="field">
+                    <label id="lName">Nom</label>
+                    <input type="text" id="clientNom" placeholder="Nom du client">
+                </div>
+                <div class="field">
+                    <label id="lPhone">Téléphone</label>
+                    <input type="tel" id="clientTel" placeholder="438-XXX-XXXX">
+                </div>
+                <div class="field">
+                    <label id="lEmail">Courriel</label>
+                    <input type="email" id="clientEmail" placeholder="email@exemple.com">
+                </div>
+                <div class="field">
+                    <label id="lAddress">Adresse du service</label>
+                    <input type="text" id="adresse" placeholder="Adresse complète">
+                </div>
+            </div>
+
+            <!-- Service -->
+            <div class="card">
+                <h3 id="labelService">🏠 Service</h3>
+                <div class="field">
+                    <label id="lType">Type de service</label>
+                    <select id="typeService" onchange="onTypeChange()">
+                        <option value="Régulier (sans contrat)">Régulier (sans contrat)</option>
+                        <option value="À la carte (Animation)">À la carte (Animation & Compagnie)</option>
+                        <option value="Groupe Soins RPA">Groupe Soins & Hygiène RPA</option>
+                        <option value="Groupe Animation RPA">Groupe Animation RPA</option>
+                        <option value="Partagé voisins RPA">Partagé voisins RPA</option>
+                        <option value="Contrat corporatif">Contrat corporatif</option>
+                        <option value="Forfait récurrent">Forfait récurrent</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label id="lCategory">Catégorie</label>
+                    <select id="categorie">
+                        <option>Soins & Hygiène</option>
+                        <option>Animation & Compagnie</option>
+                        <option>Visite de compagnie</option>
+                        <option>Accompagnement sortie</option>
+                        <option>Promenade / divertissement</option>
+                        <option>Activités cognitives (bingo, jeux)</option>
+                        <option>Animation thématique</option>
+                        <option>Assistance alimentaire</option>
+                        <option>Soins de confort</option>
+                        <option>Autre</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label id="lHours">Nombre d'heures</label>
+                    <select id="heures">
+                        <option value="1">1h — 65$</option>
+                        <option value="2" selected>2h — 120$</option>
+                        <option value="3">3h — 150$</option>
+                        <option value="4">4h — 180$</option>
+                        <option value="5">5h — 225$</option>
+                        <option value="6">6h — 270$</option>
+                        <option value="7">7h — 315$</option>
+                        <option value="8">8h — 360$</option>
+                    </select>
+                </div>
+                <div class="field" id="fieldPersonnes" style="display:none;">
+                    <label id="lPersons">Nombre de personnes</label>
+                    <input type="number" id="nbPersonnes" min="2" max="20" value="5" placeholder="5-20">
+                </div>
+                <div class="field" id="fieldForfait" style="display:none;">
+                    <label>Forfait</label>
+                    <select id="forfaitRecurrent">
+                        <option value="Essentiel">Essentiel — 1x/sem, 360$/mois</option>
+                        <option value="Confort">Confort — 2x/sem, 680$/mois</option>
+                        <option value="Premium">Premium — 3x/sem, 960$/mois</option>
+                    </select>
+                </div>
+                <div class="field" id="fieldContrat" style="display:none;">
+                    <label>Type de contrat</label>
+                    <select id="typeContrat">
+                        <option value="hebdomadaire">Hebdomadaire — 45$/h, min 4h/sem</option>
+                        <option value="mensuel">Mensuel — 43$/h, min 16h/mois</option>
+                        <option value="annuel">Annuel — 40$/h, min 16h/mois×12</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label id="lDesc">Description</label>
+                    <textarea id="description" placeholder="Description du service"></textarea>
+                </div>
+            </div>
+
+            <!-- Add-ons -->
+            <div class="card">
+                <h3 id="labelOptions">➕ Suppléments</h3>
+                <div class="addons">
+                    <div class="addon" data-addon="urgence">
+                        <div class="name">Urgence</div>
+                        <div class="price">+15$</div>
+                    </div>
+                    <div class="addon" data-addon="hors_horaire">
+                        <div class="name">Hors horaire</div>
+                        <div class="price">+10$</div>
+                    </div>
+                    <div class="addon" data-addon="fin_semaine">
+                        <div class="name">Fin de semaine</div>
+                        <div class="price">+10$</div>
+                    </div>
+                    <div class="addon" data-addon="deplacement_extra">
+                        <div class="name">Hors zone</div>
+                        <div class="price">+15$</div>
+                    </div>
+                    <div class="addon" data-addon="materiel">
+                        <div class="name">Matériel</div>
+                        <div class="price">+10$</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Totaux -->
+            <div class="card">
+                <div class="totals">
+                    <div class="row"><span>Service</span><span id="prixBase">120.00 $</span></div>
+                    <div class="row"><span>Suppléments</span><span id="prixAddons">0.00 $</span></div>
+                    <div class="row"><span id="tpsLabel">TPS (5%)</span><span id="tps">6.00 $</span></div>
+                    <div class="row"><span id="tvqLabel">TVQ (9.975%)</span><span id="tvq">11.97 $</span></div>
+                    <div class="row total"><span id="totalLabel">TOTAL</span><span class="amount" id="total">137.97 $</span></div>
+                </div>
+            </div>
+
+            <!-- Signature -->
+            <div class="card">
+                <h3 id="labelSignature">✍️ Signature du client</h3>
+                <div class="signature-container">
+                    <canvas class="signature-canvas" id="signatureCanvas"></canvas>
+                    <button class="sig-clear" onclick="clearSignature()">Effacer</button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card">
+                <button class="btn btn-gold" id="generatePdf">📄 Télécharger PDF</button>
+                <button class="btn btn-primary" id="submitAll">📤 Envoyer (Notion + Courriel)</button>
+                <button class="btn btn-outline" id="restart">🔄 Nouvelle soumission</button>
+            </div>
+        </div>
+
+        <!-- Étape 3: Succès -->
+        <div id="step3" class="hidden">
+            <div class="card" style="text-align:center; padding:30px;">
+                <div style="font-size:60px; margin-bottom:15px;">✅</div>
+                <h2 style="color:var(--green); margin-bottom:10px;">Soumission envoyée!</h2>
+                <p style="color:var(--gray);" id="successMessage"></p>
+                <button class="btn btn-primary" id="newQuote" style="margin-top:20px;">Nouvelle soumission</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB: HISTORIQUE ==================== -->
+    <div id="tabContentHistory" class="hidden">
+        <div class="card">
+            <div class="field">
+                <input type="text" id="searchInput" placeholder="Rechercher..." oninput="debounceSearch()">
+            </div>
+        </div>
+        <div class="card" id="historyList">
+            <p style="text-align:center; color:var(--gray); padding:20px;">Chargement...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// ÉTAT
+// ============================================================
+let mediaRecorder, audioChunks = [], sessionId = null;
+let currentData = {}, currentTotals = {};
+let currentLang = 'fr';
+let signatureCtx, isDrawing = false;
+
+// ============================================================
+// PRIX BCS (régulier sans contrat)
+// ============================================================
+const PRIX_REGULIER = { 1: 65, 2: 120, 3: 150, 4: 180, 5: 225, 6: 270, 7: 315, 8: 360 };
+const ADDONS = { urgence: 15, hors_horaire: 10, fin_semaine: 10, deplacement_extra: 15, materiel: 10 };
+const TPS = 0.05, TVQ = 0.09975;
+
+// Forfaits
+const FORFAITS = { Essentiel: 360, Confort: 680, Premium: 960 };
+const CONTRATS_TAUX = { hebdomadaire: 45, mensuel: 43, annuel: 40 };
+
+// ============================================================
+// TRADUCTIONS
+// ============================================================
+const LANG = {
+    fr: {
+        subtitle: 'Soumission vocale', tabQuote: 'Soumission', tabHistory: 'Historique',
+        record: 'Appuyer', stop: 'Arrêter', hint: 'Décrivez le service demandé:<br>nom du client, adresse, type de service, durée estimée',
+        client: '👤 Client', service: '🏠 Service', options: '➕ Suppléments', signature: '✍️ Signature du client',
+        name: 'Nom', phone: 'Téléphone', email: 'Courriel', address: 'Adresse du service',
+        type: 'Type de service', category: 'Catégorie', hours: "Nombre d'heures", persons: 'Nombre de personnes',
+        desc: 'Description', tps: 'TPS (5%)', tvq: 'TVQ (9.975%)', total: 'TOTAL',
+        pdfBtn: '📄 Télécharger PDF', sendBtn: '📤 Envoyer (Notion + Courriel)', newBtn: '🔄 Nouvelle soumission',
+        loading: 'Analyse en cours...', success: 'Soumission envoyée!', search: 'Rechercher...',
+        generating: '⏳ Génération...', sending: '⏳ Envoi en cours...',
+    },
+    en: {
+        subtitle: 'Voice Quote', tabQuote: 'Quote', tabHistory: 'History',
+        record: 'Tap', stop: 'Stop', hint: 'Describe the requested service:<br>client name, address, service type, estimated duration',
+        client: '👤 Client', service: '🏠 Service', options: '➕ Add-ons', signature: '✍️ Client Signature',
+        name: 'Name', phone: 'Phone', email: 'Email', address: 'Service address',
+        type: 'Service type', category: 'Category', hours: 'Number of hours', persons: 'Number of persons',
+        desc: 'Description', tps: 'GST (5%)', tvq: 'QST (9.975%)', total: 'TOTAL',
+        pdfBtn: '📄 Download PDF', sendBtn: '📤 Send (Notion + Email)', newBtn: '🔄 New quote',
+        loading: 'Processing...', success: 'Quote sent!', search: 'Search...',
+        generating: '⏳ Generating...', sending: '⏳ Sending...',
+    }
+};
+
+function setLang(lang) {
+    currentLang = lang;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+    const t = LANG[lang];
+    document.getElementById('headerSubtitle').textContent = t.subtitle;
+    document.getElementById('tabQuote').textContent = t.tabQuote;
+    document.getElementById('tabHistory').textContent = t.tabHistory;
+    document.getElementById('recordText').textContent = t.record;
+    document.getElementById('recordHint').innerHTML = t.hint;
+    document.getElementById('labelClient').textContent = t.client;
+    document.getElementById('labelService').textContent = t.service;
+    document.getElementById('labelOptions').textContent = t.options;
+    document.getElementById('labelSignature').textContent = t.signature;
+    document.getElementById('lName').textContent = t.name;
+    document.getElementById('lPhone').textContent = t.phone;
+    document.getElementById('lEmail').textContent = t.email;
+    document.getElementById('lAddress').textContent = t.address;
+    document.getElementById('lType').textContent = t.type;
+    document.getElementById('lCategory').textContent = t.category;
+    document.getElementById('lHours').textContent = t.hours;
+    document.getElementById('lPersons').textContent = t.persons;
+    document.getElementById('lDesc').textContent = t.desc;
+    document.getElementById('tpsLabel').textContent = t.tps;
+    document.getElementById('tvqLabel').textContent = t.tvq;
+    document.getElementById('totalLabel').textContent = t.total;
+    document.getElementById('generatePdf').textContent = t.pdfBtn;
+    document.getElementById('submitAll').textContent = t.sendBtn;
+    document.getElementById('restart').textContent = t.newBtn;
+    document.getElementById('loadingText').textContent = t.loading;
+    document.getElementById('searchInput').placeholder = t.search;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(tab) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    if (tab === 'quote') {
+        document.getElementById('tabQuote').classList.add('active');
+        document.getElementById('tabContentQuote').classList.remove('hidden');
+        document.getElementById('tabContentHistory').classList.add('hidden');
+    } else {
+        document.getElementById('tabHistory').classList.add('active');
+        document.getElementById('tabContentQuote').classList.add('hidden');
+        document.getElementById('tabContentHistory').classList.remove('hidden');
+        loadHistory();
+    }
+}
+
+// ============================================================
+// UTILITAIRES
+// ============================================================
+function showAlert(msg, type = 'error') {
+    const c = document.getElementById('alertContainer');
+    c.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+    setTimeout(() => c.innerHTML = '', 5000);
+}
+
+function showStep(n) {
+    ['step1','step2','step3','loading'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    if (n === 'loading') document.getElementById('loading').classList.remove('hidden');
+    else document.getElementById(`step${n}`).classList.remove('hidden');
+}
+
+// ============================================================
+// TYPE DE SERVICE — Afficher/cacher champs
+// ============================================================
+function onTypeChange() {
+    const type = document.getElementById('typeService').value;
+    document.getElementById('fieldPersonnes').style.display =
+        (type.includes('Groupe') || type.includes('Partagé')) ? 'block' : 'none';
+    document.getElementById('fieldForfait').style.display =
+        type === 'Forfait récurrent' ? 'block' : 'none';
+    document.getElementById('fieldContrat').style.display =
+        type === 'Contrat corporatif' ? 'block' : 'none';
+
+    // Mettre à jour les options d'heures selon le type
+    const sel = document.getElementById('heures');
+    if (type === 'À la carte (Animation)') {
+        sel.innerHTML = '<option value="2" selected>2h — 100$</option><option value="3">3h — 150$</option><option value="4">4h — 200$</option><option value="5">5h — 250$</option>';
+    } else if (type.includes('Groupe')) {
+        sel.innerHTML = '<option value="4" selected>4h — 200$</option><option value="5">5h — 250$</option><option value="6">6h — 300$</option><option value="8">8h — 400$</option>';
+    } else {
+        sel.innerHTML = '<option value="1">1h — 65$</option><option value="2" selected>2h — 120$</option><option value="3">3h — 150$</option><option value="4">4h — 180$</option><option value="5">5h — 225$</option><option value="6">6h — 270$</option><option value="7">7h — 315$</option><option value="8">8h — 360$</option>';
+    }
+    updateTotalsDisplay();
+}
+
+// ============================================================
+// CALCUL PRIX LOCAL
+// ============================================================
+function calculateLocal() {
+    const type = document.getElementById('typeService').value;
+    const heures = parseInt(document.getElementById('heures').value) || 2;
+    let prixBase = 0;
+
+    if (type === 'Régulier (sans contrat)') {
+        prixBase = PRIX_REGULIER[heures] || (180 + (heures - 4) * 45);
+    } else if (type === 'À la carte (Animation)') {
+        prixBase = Math.max(heures * 50, 100);
+    } else if (type.includes('Groupe')) {
+        const pers = parseInt(document.getElementById('nbPersonnes').value) || 5;
+        const h = Math.max(Math.ceil((0.4 * pers + 2) * 2) / 2, 4);
+        prixBase = h * 50;
+    } else if (type === 'Partagé voisins RPA') {
+        prixBase = 200;
+    } else if (type === 'Contrat corporatif') {
+        const taux = CONTRATS_TAUX[document.getElementById('typeContrat').value] || 45;
+        prixBase = heures * taux;
+    } else if (type === 'Forfait récurrent') {
+        prixBase = FORFAITS[document.getElementById('forfaitRecurrent').value] || 360;
+    } else {
+        prixBase = PRIX_REGULIER[heures] || 120;
+    }
+
+    let addonsTotal = 0;
+    document.querySelectorAll('.addon.selected').forEach(el => {
+        addonsTotal += ADDONS[el.dataset.addon] || 0;
+    });
+
+    const sousTotal = prixBase + addonsTotal;
+    const tps = sousTotal * TPS;
+    const tvq = sousTotal * TVQ;
+    return { prixBase, addonsTotal, sousTotal, tps, tvq, total: sousTotal + tps + tvq };
+}
+
+function updateTotalsDisplay() {
+    const t = calculateLocal();
+    document.getElementById('prixBase').textContent = t.prixBase.toFixed(2) + ' $';
+    document.getElementById('prixAddons').textContent = t.addonsTotal.toFixed(2) + ' $';
+    document.getElementById('tps').textContent = t.tps.toFixed(2) + ' $';
+    document.getElementById('tvq').textContent = t.tvq.toFixed(2) + ' $';
+    document.getElementById('total').textContent = t.total.toFixed(2) + ' $';
+    currentTotals = t;
+}
+
+// ============================================================
+// AUDIO
+// ============================================================
+const recordBtn = document.getElementById('recordBtn');
+recordBtn.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true }
+            });
+            // Choisir le format supporté par le navigateur
+            let mimeType = 'audio/webm';
+            if (typeof MediaRecorder !== 'undefined') {
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    mimeType = 'audio/webm;codecs=opus';
+                } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+                    mimeType = 'audio/wav';
+                } else {
+                    mimeType = '';
+                }
+            }
+            const recorderOptions = mimeType ? { mimeType } : {};
+            mediaRecorder = new MediaRecorder(stream, recorderOptions);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => processAudio();
+            mediaRecorder.start();
+            recordBtn.classList.add('recording');
+            document.getElementById('recordText').textContent = LANG[currentLang].stop;
+        } catch (err) {
+                console.error('Microphone error:', err);
+                if (err.name === 'NotAllowedError') {
+                    showAlert('Accès au microphone refusé. Veuillez autoriser le micro dans les paramètres du navigateur.');
+                } else if (err.name === 'NotFoundError') {
+                    showAlert('Aucun microphone détecté.');
+                } else if (!window.isSecureContext) {
+                    showAlert('HTTPS requis pour le microphone. Accédez via https:// et acceptez le certificat.');
+                } else {
+                    showAlert('Erreur microphone: ' + err.message);
+                }
+            }
+    } else {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
+        recordBtn.classList.remove('recording');
+        document.getElementById('recordText').textContent = LANG[currentLang].record;
+    }
+});
+
+async function processAudio() {
+    showStep('loading');
+    const recMime = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : 'audio/webm';
+    const ext = recMime.includes('mp4') ? 'mp4' : recMime.includes('wav') ? 'wav' : 'webm';
+    const blob = new Blob(audioChunks, { type: recMime });
+    const fd = new FormData();
+    fd.append('audio', blob, `recording.${ext}`);
+    fd.append('language', currentLang);
+    try {
+        const res = await fetch('/api/process-voice', { method: 'POST', body: fd });
+        const result = await res.json();
+        if (result.success) {
+            sessionId = result.session_id;
+            currentData = result.data;
+            currentTotals = result.totals;
+            fillForm();
+            showStep(2);
+        } else { showAlert(result.error || 'Erreur'); showStep(1); }
+    } catch (err) { showAlert('Erreur réseau: ' + err.message); showStep(1); }
+}
+
+// ============================================================
+// REMPLIR FORMULAIRE
+// ============================================================
+function fillForm() {
+    document.getElementById('transcriptionText').textContent = currentData.description_service || '';
+    document.getElementById('clientNom').value = currentData.client_nom || '';
+    document.getElementById('clientTel').value = currentData.client_telephone || '';
+    document.getElementById('clientEmail').value = currentData.client_email || '';
+    document.getElementById('adresse').value = currentData.adresse_service || '';
+    document.getElementById('description').value = currentData.description_service || '';
+    document.getElementById('categorie').value = currentData.categorie || 'Autre';
+    document.getElementById('typeService').value = currentData.type_service || 'Régulier (sans contrat)';
+    document.getElementById('heures').value = currentData.nombre_heures || 2;
+    if (currentData.nombre_personnes) document.getElementById('nbPersonnes').value = currentData.nombre_personnes;
+    if (currentData.forfait_recurrent) document.getElementById('forfaitRecurrent').value = currentData.forfait_recurrent;
+    if (currentData.type_contrat) document.getElementById('typeContrat').value = currentData.type_contrat;
+
+    document.querySelectorAll('.addon').forEach(el => {
+        el.classList.toggle('selected', currentData['addon_' + el.dataset.addon] === true);
+    });
+
+    onTypeChange();
+    updateTotalsDisplay();
+}
+
+function collectForm() {
+    currentData.client_nom = document.getElementById('clientNom').value;
+    currentData.client_telephone = document.getElementById('clientTel').value;
+    currentData.client_email = document.getElementById('clientEmail').value;
+    currentData.adresse_service = document.getElementById('adresse').value;
+    currentData.description_service = document.getElementById('description').value;
+    currentData.categorie = document.getElementById('categorie').value;
+    currentData.type_service = document.getElementById('typeService').value;
+    currentData.nombre_heures = parseInt(document.getElementById('heures').value) || 2;
+    currentData.nombre_personnes = parseInt(document.getElementById('nbPersonnes').value) || 0;
+    currentData.forfait_recurrent = document.getElementById('forfaitRecurrent').value;
+    currentData.type_contrat = document.getElementById('typeContrat').value;
+    currentData.langue_client = currentLang;
+    document.querySelectorAll('.addon').forEach(el => {
+        currentData['addon_' + el.dataset.addon] = el.classList.contains('selected');
+    });
+}
+
+// ============================================================
+// ADD-ONS & EVENTS
+// ============================================================
+document.querySelectorAll('.addon').forEach(el => {
+    el.addEventListener('click', () => { el.classList.toggle('selected'); updateTotalsDisplay(); });
+});
+document.getElementById('heures').addEventListener('change', updateTotalsDisplay);
+document.getElementById('nbPersonnes').addEventListener('input', updateTotalsDisplay);
+document.getElementById('forfaitRecurrent').addEventListener('change', updateTotalsDisplay);
+document.getElementById('typeContrat').addEventListener('change', updateTotalsDisplay);
+
+// ============================================================
+// SIGNATURE CANVAS
+// ============================================================
+function initSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    signatureCtx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth * 2;
+    canvas.height = canvas.offsetHeight * 2;
+    signatureCtx.scale(2, 2);
+    signatureCtx.strokeStyle = '#1B2A4A';
+    signatureCtx.lineWidth = 2;
+    signatureCtx.lineCap = 'round';
+
+    const getPos = (e) => {
+        const r = canvas.getBoundingClientRect();
+        const touch = e.touches ? e.touches[0] : e;
+        return { x: touch.clientX - r.left, y: touch.clientY - r.top };
+    };
+
+    const start = (e) => { e.preventDefault(); isDrawing = true; const p = getPos(e); signatureCtx.beginPath(); signatureCtx.moveTo(p.x, p.y); };
+    const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const p = getPos(e); signatureCtx.lineTo(p.x, p.y); signatureCtx.stroke(); };
+    const end = () => { isDrawing = false; };
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', end);
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', end);
+}
+
+function clearSignature() {
+    const canvas = document.getElementById('signatureCanvas');
+    signatureCtx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function getSignatureData() {
+    const canvas = document.getElementById('signatureCanvas');
+    const ctx = canvas.getContext('2d');
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const hasContent = data.some((val, i) => i % 4 === 3 && val > 0);
+    return hasContent ? canvas.toDataURL('image/png') : null;
+}
+
+// ============================================================
+// PDF
+// ============================================================
+document.getElementById('generatePdf').addEventListener('click', async () => {
+    collectForm();
+    const btn = document.getElementById('generatePdf');
+    btn.disabled = true; btn.textContent = LANG[currentLang].generating;
+    try {
+        await fetch('/api/update-session', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, updates: currentData })
+        });
+        const sig = getSignatureData();
+        const res = await fetch('/api/generate-pdf', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, signature: sig })
+        });
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'soumission-bcs.pdf'; a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            const err = await res.json();
+            showAlert(err.error || 'Erreur PDF');
+        }
+    } catch (err) { showAlert('Erreur: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = LANG[currentLang].pdfBtn; }
+});
+
+// ============================================================
+// SOUMETTRE
+// ============================================================
+document.getElementById('submitAll').addEventListener('click', async () => {
+    collectForm();
+    const btn = document.getElementById('submitAll');
+    btn.disabled = true; btn.textContent = LANG[currentLang].sending;
+    try {
+        await fetch('/api/update-session', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, updates: currentData })
+        });
+        const sig = getSignatureData();
+        const res = await fetch('/api/submit', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: sessionId, signature: sig })
+        });
+        const result = await res.json();
+        if (result.success) {
+            let msg = currentLang === 'fr' ? 'Soumission sauvegardée' : 'Quote saved';
+            if (result.results.email?.success) msg += currentLang === 'fr' ? ' et envoyée par courriel' : ' and sent by email';
+            document.getElementById('successMessage').textContent = msg;
+            showStep(3);
+        } else { showAlert(result.error || 'Erreur'); }
+    } catch (err) { showAlert('Erreur: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = LANG[currentLang].sendBtn; }
+});
+
+// ============================================================
+// RESTART
+// ============================================================
+document.getElementById('restart').addEventListener('click', doRestart);
+document.getElementById('newQuote').addEventListener('click', doRestart);
+function doRestart() {
+    sessionId = null; currentData = {}; currentTotals = {};
+    document.querySelectorAll('.addon').forEach(el => el.classList.remove('selected'));
+    document.getElementById('heures').value = '2';
+    document.getElementById('typeService').value = 'Régulier (sans contrat)';
+    onTypeChange(); clearSignature(); showStep(1);
+}
+
+// ============================================================
+// HISTORIQUE
+// ============================================================
+let searchTimer;
+function debounceSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 400); }
+
+async function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    if (!q) { loadHistory(); return; }
+    try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        renderHistory(data.results || []);
+    } catch (err) { console.error(err); }
+}
+
+async function loadHistory() {
+    try {
+        const res = await fetch('/api/history?limit=20');
+        const data = await res.json();
+        renderHistory(data.soumissions || []);
+    } catch (err) {
+        document.getElementById('historyList').innerHTML = '<p style="text-align:center;color:var(--gray);padding:20px;">Erreur chargement</p>';
+    }
+}
+
+function renderHistory(items) {
+    const container = document.getElementById('historyList');
+    if (!items.length) {
+        container.innerHTML = `<p style="text-align:center;color:var(--gray);padding:20px;">${currentLang === 'fr' ? 'Aucune soumission' : 'No quotes'}</p>`;
+        return;
+    }
+    container.innerHTML = items.map(s => {
+        const date = s.created ? new Date(s.created).toLocaleDateString('fr-CA') : '';
+        return `<div class="history-item" onclick="window.open('${s.url}','_blank')">
+            <div>
+                <div class="history-title">${s.titre || '—'}</div>
+                <div class="history-meta">${date} · ${s.type_service || s.categorie || ''} <span class="history-status status-${s.statut}">${s.statut || ''}</span></div>
+            </div>
+            <div class="history-total">${s.total ? s.total.toFixed(2) + ' $' : ''}</div>
+        </div>`;
+    }).join('');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load', () => {
+    initSignature();
+    setLang('fr');
+    updateTotalsDisplay();
+});
+window.addEventListener('resize', () => {
+    const canvas = document.getElementById('signatureCanvas');
+    if (canvas.offsetWidth > 0) {
+        canvas.width = canvas.offsetWidth * 2;
+        canvas.height = canvas.offsetHeight * 2;
+        signatureCtx.scale(2, 2);
+        signatureCtx.strokeStyle = '#1B2A4A';
+        signatureCtx.lineWidth = 2;
+        signatureCtx.lineCap = 'round';
+    }
+});
+</script>
+</body>
+</html>
