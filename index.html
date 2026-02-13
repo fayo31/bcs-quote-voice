@@ -810,12 +810,28 @@ document.getElementById('generatePdf').addEventListener('click', async () => {
         if (res.ok) {
             const blob = await res.blob();
             const url = URL.createObjectURL(blob);
+            // Méthode robuste pour mobile et desktop
             const a = document.createElement('a');
-            a.href = url; a.download = 'soumission-bcs.pdf'; a.click();
-            URL.revokeObjectURL(url);
+            a.href = url;
+            a.download = 'soumission-bcs.pdf';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            // Délai avant nettoyage pour iOS/Safari
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 1000);
+            // Fallback: ouvrir dans un nouvel onglet si le download ne se déclenche pas
+            setTimeout(() => {
+                if (!document.hasFocus || document.hasFocus()) {
+                    window.open(url, '_blank');
+                }
+            }, 2000);
         } else {
-            const err = await res.json();
-            showAlert(err.error || 'Erreur PDF');
+            let errMsg = 'Erreur PDF';
+            try { const err = await res.json(); errMsg = err.error || errMsg; } catch(e) {}
+            showAlert(errMsg);
         }
     } catch (err) { showAlert('Erreur: ' + err.message); }
     finally { btn.disabled = false; btn.textContent = LANG[currentLang].pdfBtn; }
