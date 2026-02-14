@@ -29,7 +29,82 @@
             padding-bottom: 100px;
         }
 
-        .container { max-width: 520px; margin: 0 auto; padding: 15px; }
+        .container { max-width: 100%; margin: 0 auto; padding: 15px; }
+        @media (min-width: 900px) {
+            .container { max-width: 1400px; }
+        }
+
+        /* Split layout: gauche = saisie, droite = soumission en direct */
+        .split-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        @media (min-width: 900px) {
+            .split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+        }
+        .panel-input { min-width: 0; }
+        .panel-live {
+            min-width: 0;
+            position: sticky;
+            top: 16px;
+        }
+        .panel-live h2 {
+            font-size: 18px;
+            color: var(--navy);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .panel-live.has-session .live-dot {
+            opacity: 1;
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Boutons de mode (Dictée / Écrit / Enregistrement) */
+        .mode-buttons { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .mode-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            border: 2px solid var(--gray-light);
+            border-radius: 12px;
+            background: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active { border-color: var(--navy); background: var(--navy); color: white; }
+        .mode-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .mode-content { display: none; }
+        .mode-content.active { display: block; }
+
+        /* Dictée: zone transcription en direct */
+        .live-transcript {
+            background: var(--cream);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 60px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #374151;
+            margin-top: 12px;
+        }
+        .dictée-btn.listening { border-color: var(--green); background: var(--green-light); box-shadow: 0 0 0 3px rgba(45,106,79,0.2); }
 
         /* Header */
         header {
@@ -233,38 +308,69 @@
 
     <!-- ==================== TAB: SOUMISSION ==================== -->
     <div id="tabContentQuote">
-
-        <!-- Étape 1: Enregistrement -->
-        <div id="step1">
-            <div class="card">
-                <div class="record-container">
-                    <button class="record-btn" id="recordBtn">
-                        <span class="icon">🎤</span>
-                        <span id="recordText">Appuyer</span>
-                    </button>
-                    <p class="record-hint" id="recordHint">
-                        Décrivez le service demandé:<br>
-                        nom du client, adresse, type de service, durée estimée
-                    </p>
+        <div class="split-layout">
+            <!-- Panneau gauche: saisie (Dictée / Écrit / Enregistrement) -->
+            <aside class="panel-input">
+                <div class="mode-buttons">
+                    <button type="button" class="mode-btn active" data-mode="dictée" id="modeDictée">Dictée</button>
+                    <button type="button" class="mode-btn" data-mode="écrit" id="modeÉcrit">Écrit</button>
+                    <button type="button" class="mode-btn" data-mode="enregistrement" id="modeEnregistrement">Enregistrement</button>
                 </div>
-            </div>
-        </div>
 
-        <!-- Loading -->
-        <div id="loading" class="card hidden">
-            <div class="loading">
-                <div class="spinner"></div>
-                <p id="loadingText">Analyse en cours...</p>
-            </div>
-        </div>
+                <div id="modeContentDictée" class="mode-content active">
+                    <div class="card">
+                        <div class="record-container">
+                            <button type="button" class="record-btn dictée-btn" id="dictéeBtn" title="Parler">
+                                <span class="icon">🎤</span>
+                                <span id="dictéeBtnText">Parler</span>
+                            </button>
+                            <p class="record-hint">Reconnaissance vocale continue (fr-CA). Parlez, puis attendez l’envoi automatique.</p>
+                            <div class="live-transcript" id="liveTranscript" aria-live="polite">—</div>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Étape 2: Vérification -->
-        <div id="step2" class="hidden">
+                <div id="modeContentÉcrit" class="mode-content">
+                    <div class="card">
+                        <h3>Saisie écrite</h3>
+                        <div class="field">
+                            <textarea id="writtenText" placeholder="Décrivez le service: client, adresse, type, durée..." rows="5"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="analyzeWrittenBtn">Analyser et remplir</button>
+                    </div>
+                </div>
 
-            <div class="card">
-                <h3>📝 Transcription</h3>
-                <div class="transcription" id="transcriptionText"></div>
-            </div>
+                <div id="modeContentEnregistrement" class="mode-content">
+                    <div class="card">
+                        <div class="record-container">
+                            <button class="record-btn" id="recordBtn">
+                                <span class="icon">🎤</span>
+                                <span id="recordText">Appuyer</span>
+                            </button>
+                            <p class="record-hint" id="recordHint">
+                                Décrivez le service demandé:<br>
+                                nom du client, adresse, type de service, durée estimée
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loading" class="card hidden">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p id="loadingText">Analyse en cours...</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Panneau droit: soumission en direct (facture en temps réel) -->
+            <main class="panel-live" id="panelLive">
+                <h2>Soumission en direct <span class="live-dot" aria-hidden="true"></span></h2>
+
+                <div class="card">
+                    <h3>📝 Transcription</h3>
+                    <div class="transcription" id="transcriptionText">— En attente de saisie —</div>
+                </div>
 
             <!-- Client -->
             <div class="card">
@@ -407,8 +513,10 @@
             <div class="card">
                 <button class="btn btn-gold" id="generatePdf">📄 Télécharger PDF</button>
                 <button class="btn btn-primary" id="submitAll">📤 Envoyer (Notion + Courriel)</button>
+                <button class="btn btn-outline" id="addByDictéeBtn" style="display:none;">🎤 Ajouter par dictée</button>
                 <button class="btn btn-outline" id="restart">🔄 Nouvelle soumission</button>
             </div>
+            </main>
         </div>
 
         <!-- Étape 3: Succès -->
@@ -443,6 +551,11 @@ let mediaRecorder, audioChunks = [], sessionId = null;
 let currentData = {}, currentTotals = {};
 let currentLang = 'fr';
 let signatureCtx, isDrawing = false;
+let fullTranscription = ''; // transcription cumulée pour affichage panneau droit
+const DEBOUNCE_MS = 1200;
+let dictéeDebounceTimer = null;
+let speechRecognition = null;
+const hasSpeechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
 // ============================================================
 // PRIX BCS (régulier sans contrat)
@@ -517,6 +630,155 @@ function setLang(lang) {
 }
 
 // ============================================================
+// MODES (Dictée / Écrit / Enregistrement)
+// ============================================================
+function setInputMode(mode) {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.mode-content').forEach(c => c.classList.remove('active'));
+    const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    const content = document.getElementById(`modeContent${mode === 'dictée' ? 'Dictée' : mode === 'écrit' ? 'Écrit' : 'Enregistrement'}`);
+    if (btn) btn.classList.add('active');
+    if (content) content.classList.add('active');
+    if (mode === 'dictée' && !hasSpeechRecognition) {
+        const dictéeBtn = document.getElementById('dictéeBtn');
+        if (dictéeBtn) dictéeBtn.disabled = true;
+    }
+}
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setInputMode(btn.dataset.mode));
+});
+if (!hasSpeechRecognition) {
+    document.getElementById('modeDictée').disabled = true;
+    document.getElementById('modeDictée').title = 'Non supporté (Chrome/Edge recommandés)';
+}
+
+// ============================================================
+// DICTÉE (Web Speech API)
+// ============================================================
+function initDictation() {
+    if (!hasSpeechRecognition) return;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    speechRecognition = new SpeechRecognition();
+    speechRecognition.continuous = true;
+    speechRecognition.interimResults = true;
+    speechRecognition.lang = 'fr-CA';
+
+    const dictéeBtn = document.getElementById('dictéeBtn');
+    const liveTranscriptEl = document.getElementById('liveTranscript');
+    const dictéeBtnText = document.getElementById('dictéeBtnText');
+
+    speechRecognition.onresult = (e) => {
+        let transcript = '';
+        for (let i = 0; i < e.results.length; i++)
+            transcript += e.results[i][0].transcript;
+        liveTranscriptEl.textContent = transcript;
+        if (e.results[e.results.length - 1].isFinal) {
+            clearTimeout(dictéeDebounceTimer);
+            dictéeDebounceTimer = setTimeout(() => sendTranscriptToBackend(transcript), DEBOUNCE_MS);
+        }
+    };
+    speechRecognition.onerror = (e) => {
+        if (e.error !== 'aborted') console.warn('Speech recognition error:', e.error);
+    };
+
+    let isDictationActive = false;
+    dictéeBtn.addEventListener('click', () => {
+        if (isDictationActive) {
+            speechRecognition.stop();
+            return;
+        }
+        liveTranscriptEl.textContent = '—';
+        speechRecognition.start();
+        isDictationActive = true;
+        dictéeBtn.classList.add('listening');
+        dictéeBtnText.textContent = 'Arrêter';
+    });
+    speechRecognition.onend = () => {
+        isDictationActive = false;
+        dictéeBtn.classList.remove('listening');
+        dictéeBtnText.textContent = 'Parler';
+    };
+}
+async function sendTranscriptToBackend(text) {
+    const t = (text || '').trim();
+    if (!t) return;
+    document.getElementById('loading').classList.remove('hidden');
+    try {
+        if (sessionId) {
+            const res = await fetch('/api/update-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, additional_text: t })
+            });
+            const result = await res.json();
+            if (result.success) {
+                currentData = result.data;
+                currentTotals = result.totals;
+                fullTranscription = (fullTranscription ? fullTranscription + '\n\n' : '') + t;
+                updateFormFromData();
+            } else showAlert(result.error || 'Erreur');
+        } else {
+            const res = await fetch('/api/create-from-text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: t })
+            });
+            const result = await res.json();
+            if (result.success) {
+                sessionId = result.session_id;
+                currentData = result.data;
+                currentTotals = result.totals;
+                fullTranscription = result.transcription || t;
+                updateFormFromData();
+            } else showAlert(result.error || 'Erreur');
+        }
+    } catch (err) { showAlert('Erreur réseau: ' + err.message); }
+    finally { document.getElementById('loading').classList.add('hidden'); }
+}
+
+// ============================================================
+// MODE ÉCRIT — Analyser et remplir
+// ============================================================
+document.getElementById('analyzeWrittenBtn').addEventListener('click', async () => {
+    const text = document.getElementById('writtenText').value.trim();
+    if (!text) { showAlert('Saisissez du texte.'); return; }
+    document.getElementById('loading').classList.remove('hidden');
+    try {
+        if (sessionId) {
+            const res = await fetch('/api/update-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_id: sessionId, additional_text: text })
+            });
+            const result = await res.json();
+            if (result.success) {
+                currentData = result.data;
+                currentTotals = result.totals;
+                fullTranscription = (fullTranscription ? fullTranscription + '\n\n' : '') + text;
+                updateFormFromData();
+                document.getElementById('writtenText').value = '';
+            } else showAlert(result.error || 'Erreur');
+        } else {
+            const res = await fetch('/api/create-from-text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const result = await res.json();
+            if (result.success) {
+                sessionId = result.session_id;
+                currentData = result.data;
+                currentTotals = result.totals;
+                fullTranscription = result.transcription || text;
+                updateFormFromData();
+                document.getElementById('writtenText').value = '';
+            } else showAlert(result.error || 'Erreur');
+        }
+    } catch (err) { showAlert('Erreur réseau: ' + err.message); }
+    finally { document.getElementById('loading').classList.add('hidden'); }
+});
+
+// ============================================================
 // TABS
 // ============================================================
 function showTab(tab) {
@@ -543,9 +805,15 @@ function showAlert(msg, type = 'error') {
 }
 
 function showStep(n) {
-    ['step1','step2','step3','loading'].forEach(id => document.getElementById(id).classList.add('hidden'));
-    if (n === 'loading') document.getElementById('loading').classList.remove('hidden');
-    else document.getElementById(`step${n}`).classList.remove('hidden');
+    const quoteSplit = document.querySelector('.split-layout');
+    const step3 = document.getElementById('step3');
+    const loading = document.getElementById('loading');
+    if (quoteSplit) quoteSplit.classList.add('hidden');
+    if (step3) step3.classList.add('hidden');
+    if (loading) loading.classList.add('hidden');
+    if (n === 'loading' && loading) loading.classList.remove('hidden');
+    else if (n === 3 && step3) { if (quoteSplit) quoteSplit.classList.add('hidden'); step3.classList.remove('hidden'); }
+    else if (quoteSplit) quoteSplit.classList.remove('hidden');
 }
 
 // ============================================================
@@ -672,7 +940,7 @@ recordBtn.addEventListener('click', async () => {
 });
 
 async function processAudio() {
-    showStep('loading');
+    document.getElementById('loading').classList.remove('hidden');
     const recMime = mediaRecorder && mediaRecorder.mimeType ? mediaRecorder.mimeType : 'audio/webm';
     const ext = recMime.includes('mp4') ? 'mp4' : recMime.includes('wav') ? 'wav' : 'webm';
     const blob = new Blob(audioChunks, { type: recMime });
@@ -686,17 +954,22 @@ async function processAudio() {
             sessionId = result.session_id;
             currentData = result.data;
             currentTotals = result.totals;
-            fillForm();
-            showStep(2);
-        } else { showAlert(result.error || 'Erreur'); showStep(1); }
-    } catch (err) { showAlert('Erreur réseau: ' + err.message); showStep(1); }
+            fullTranscription = result.transcription || '';
+            updateFormFromData();
+        } else showAlert(result.error || 'Erreur');
+    } catch (err) { showAlert('Erreur réseau: ' + err.message); }
+    finally { document.getElementById('loading').classList.add('hidden'); }
 }
 
 // ============================================================
-// REMPLIR FORMULAIRE
+// REMPLIR FORMULAIRE (panneau droit = facture en temps réel)
 // ============================================================
-function fillForm() {
-    document.getElementById('transcriptionText').textContent = currentData.description_service || '';
+function updateFormFromData() {
+    const panelLive = document.getElementById('panelLive');
+    const transcriptionEl = document.getElementById('transcriptionText');
+    const addByDictéeBtn = document.getElementById('addByDictéeBtn');
+
+    transcriptionEl.textContent = fullTranscription || currentData.description_service || '— En attente de saisie —';
     document.getElementById('clientNom').value = currentData.client_nom || '';
     document.getElementById('clientTel').value = currentData.client_telephone || '';
     document.getElementById('clientEmail').value = currentData.client_email || '';
@@ -715,7 +988,11 @@ function fillForm() {
 
     onTypeChange();
     updateTotalsDisplay();
+
+    panelLive.classList.add('has-session');
+    if (addByDictéeBtn) addByDictéeBtn.style.display = hasSpeechRecognition ? 'block' : 'none';
 }
+function fillForm() { updateFormFromData(); }
 
 function collectForm() {
     currentData.client_nom = document.getElementById('clientNom').value;
@@ -871,11 +1148,26 @@ document.getElementById('submitAll').addEventListener('click', async () => {
 document.getElementById('restart').addEventListener('click', doRestart);
 document.getElementById('newQuote').addEventListener('click', doRestart);
 function doRestart() {
-    sessionId = null; currentData = {}; currentTotals = {};
+    sessionId = null;
+    currentData = {};
+    currentTotals = {};
+    fullTranscription = '';
+    document.getElementById('panelLive').classList.remove('has-session');
+    document.getElementById('transcriptionText').textContent = '— En attente de saisie —';
+    const addByDictéeBtn = document.getElementById('addByDictéeBtn');
+    if (addByDictéeBtn) addByDictéeBtn.style.display = 'none';
+    const liveTranscript = document.getElementById('liveTranscript');
+    if (liveTranscript) liveTranscript.textContent = '—';
     document.querySelectorAll('.addon').forEach(el => el.classList.remove('selected'));
     document.getElementById('heures').value = '2';
     document.getElementById('typeService').value = 'Régulier (sans contrat)';
-    onTypeChange(); clearSignature(); showStep(1);
+    onTypeChange();
+    updateTotalsDisplay();
+    clearSignature();
+    const step3 = document.getElementById('step3');
+    const split = document.querySelector('.split-layout');
+    if (step3) step3.classList.add('hidden');
+    if (split) split.classList.remove('hidden');
 }
 
 // ============================================================
@@ -923,10 +1215,20 @@ function renderHistory(items) {
 }
 
 // ============================================================
+// AJOUTER PAR DICTÉE (compléter une session existante)
+// ============================================================
+document.getElementById('addByDictéeBtn').addEventListener('click', () => {
+    setInputMode('dictée');
+    const dictéeBtn = document.getElementById('dictéeBtn');
+    if (dictéeBtn && hasSpeechRecognition && !dictéeBtn.disabled) dictéeBtn.click();
+});
+
+// ============================================================
 // INIT
 // ============================================================
 window.addEventListener('load', () => {
     initSignature();
+    if (hasSpeechRecognition) initDictation();
     setLang('fr');
     updateTotalsDisplay();
 });

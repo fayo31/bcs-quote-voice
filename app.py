@@ -12,6 +12,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from datetime import datetime
 import os
+import secrets
 import tempfile
 import base64
 
@@ -94,6 +95,39 @@ def parse():
         result['totals'] = totals
 
     return jsonify(result)
+
+
+@app.route('/api/create-from-text', methods=['POST'])
+def create_from_text():
+    """
+    Crée une session à partir d'un texte (dictée ou mode écrit).
+    Entrée: {"text": "chaîne"}
+    Sortie: {success, session_id, transcription, data, totals}
+    """
+    data = request.json
+    text = (data or {}).get('text', '').strip()
+    if not text:
+        return jsonify({'success': False, 'error': 'Texte manquant'}), 400
+
+    parsed = parse_voice_input(text)
+    if not parsed['success']:
+        return jsonify(parsed), 400
+
+    totals = calculate_totals(parsed['data'])
+    session_id = secrets.token_urlsafe(16)
+    sessions[session_id] = {
+        'transcription': text,
+        'data': parsed['data'],
+        'totals': totals,
+        'created_at': datetime.now().isoformat()
+    }
+    return jsonify({
+        'success': True,
+        'session_id': session_id,
+        'transcription': text,
+        'data': parsed['data'],
+        'totals': totals
+    })
 
 
 @app.route('/api/process-voice', methods=['POST'])
