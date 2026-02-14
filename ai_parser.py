@@ -8,7 +8,7 @@ import anthropic
 from config import Config
 import json
 
-client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY)
+client = anthropic.Anthropic(api_key=Config.ANTHROPIC_API_KEY) if Config.ANTHROPIC_API_KEY else None
 
 SYSTEM_PROMPT = """Tu es un assistant Bien Chez Soi (BCS) qui extrait les informations de soumission à partir d'une demande vocale transcrite.
 
@@ -113,6 +113,8 @@ def parse_voice_input(transcription):
     Returns:
         dict: {'success': bool, 'data': dict} ou {'success': False, 'error': str}
     """
+    if not client:
+        return {'success': False, 'error': 'ANTHROPIC_API_KEY non configurée. Ajoutez-la dans .env pour l\'analyse du texte.'}
     try:
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
@@ -200,6 +202,8 @@ Information additionnelle du client:
 Mets à jour le JSON avec les nouvelles informations.
 Retourne UNIQUEMENT le JSON complet mis à jour, même structure que ci-dessus."""
 
+    if not client:
+        return {'success': False, 'error': 'ANTHROPIC_API_KEY non configurée. Ajoutez-la dans .env.'}
     try:
         message = client.messages.create(
             model="claude-sonnet-4-20250514",

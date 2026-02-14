@@ -6,9 +6,17 @@ Les Entreprises REMES Inc. / Fiducie Ramahime
 
 import os
 import math
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(override=True)
+# Charger .env depuis le dossier du projet (ou .env.example si .env absent)
+_project_dir = Path(__file__).resolve().parent
+_env_path = _project_dir / '.env'
+if not _env_path.exists():
+    _env_path = _project_dir / '.env.example'
+load_dotenv(_env_path, override=True)
+# Pour débogage au démarrage (chemin uniquement, pas les valeurs)
+CONFIG_LOADED_FROM = str(_env_path)
 
 
 class Config:

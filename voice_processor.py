@@ -8,7 +8,7 @@ from config import Config
 import tempfile
 import os
 
-client = OpenAI(api_key=Config.OPENAI_API_KEY)
+client = OpenAI(api_key=Config.OPENAI_API_KEY) if Config.OPENAI_API_KEY else None
 
 
 def transcribe_audio(audio_file, language="fr"):
@@ -23,6 +23,8 @@ def transcribe_audio(audio_file, language="fr"):
         dict: {'success': bool, 'text': str, 'language': str}
     """
     try:
+        if not client or not Config.OPENAI_API_KEY:
+            return {'success': False, 'error': 'OPENAI_API_KEY non configurée. Ajoutez-la dans .env pour la transcription.'}
         # Si c'est un stream (upload Flask), sauvegarder temporairement
         if hasattr(audio_file, 'read'):
             # Détecter l'extension depuis le nom du fichier

@@ -16,7 +16,7 @@ import secrets
 import tempfile
 import base64
 
-from config import Config
+from config import Config, CONFIG_LOADED_FROM
 from voice_processor import transcribe_audio
 from ai_parser import parse_voice_input, complete_soumission_data
 from pdf_generator import generate_soumission_pdf, calculate_totals
@@ -466,6 +466,7 @@ if __name__ == '__main__':
     print(f"Démarrage sur http://localhost:8080")
     print()
     print("Configuration:")
+    print(f"  Fichier chargé:      {CONFIG_LOADED_FROM}")
     print(f"  OpenAI (Whisper):    {'OK' if Config.OPENAI_API_KEY else 'MANQUANT'}")
     print(f"  Anthropic (Claude):  {'OK' if Config.ANTHROPIC_API_KEY else 'MANQUANT'}")
     print(f"  Notion:              {'OK' if Config.NOTION_API_KEY and Config.NOTION_SOUMISSIONS_DB else 'MANQUANT'}")
