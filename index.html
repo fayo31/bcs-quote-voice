@@ -1152,18 +1152,35 @@ function doRestart() {
     currentData = {};
     currentTotals = {};
     fullTranscription = '';
+
     document.getElementById('panelLive').classList.remove('has-session');
     document.getElementById('transcriptionText').textContent = '— En attente de saisie —';
     const addByDictéeBtn = document.getElementById('addByDictéeBtn');
     if (addByDictéeBtn) addByDictéeBtn.style.display = 'none';
     const liveTranscript = document.getElementById('liveTranscript');
     if (liveTranscript) liveTranscript.textContent = '—';
-    document.querySelectorAll('.addon').forEach(el => el.classList.remove('selected'));
-    document.getElementById('heures').value = '2';
+
+    // Vider tous les champs du formulaire (recommencer à zéro)
+    document.getElementById('clientNom').value = '';
+    document.getElementById('clientTel').value = '';
+    document.getElementById('clientEmail').value = '';
+    document.getElementById('adresse').value = '';
+    document.getElementById('description').value = '';
+    document.getElementById('writtenText').value = '';
+
+    document.getElementById('categorie').value = 'Autre';
     document.getElementById('typeService').value = 'Régulier (sans contrat)';
+    document.getElementById('heures').value = '2';
+    document.getElementById('nbPersonnes').value = '5';
+    document.getElementById('forfaitRecurrent').value = 'Essentiel';
+    document.getElementById('typeContrat').value = 'hebdomadaire';
+
+    document.querySelectorAll('.addon').forEach(el => el.classList.remove('selected'));
+
     onTypeChange();
     updateTotalsDisplay();
     clearSignature();
+
     const step3 = document.getElementById('step3');
     const split = document.querySelector('.split-layout');
     if (step3) step3.classList.add('hidden');

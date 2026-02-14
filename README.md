@@ -44,6 +44,8 @@ Résumé de tout ce qui a été fait depuis l’état initial jusqu’à la vers
   Affiché quand une session existe ; relance la dictée pour compléter la soumission (utilise `additional_text`).
 - **Mise à jour en direct**  
   Après chaque réponse API réussie, `updateFormFromData()` remplit le panneau droit (transcription, champs, totaux).
+- **Bouton « Nouvelle soumission »**  
+  Réinitialisation complète : session supprimée, tous les champs du formulaire vidés (client, adresse, description, zone écrite, catégorie, type de service, heures, add-ons, etc.), totaux remis aux valeurs par défaut (2 h régulier), signature effacée, panneau droit affichant « — En attente de saisie — ». L’interface revient comme au premier chargement.
 
 ### 3. Configuration et chargement du `.env`
 
@@ -81,6 +83,7 @@ Résumé de tout ce qui a été fait depuis l’état initial jusqu’à la vers
 | **Démarrage sans clés API** | Erreur à l’import (client OpenAI/Anthropic) | Démarrage possible ; message clair à l’usage (transcription / analyse) si clé manquante |
 | **Port** | 5000 (dans l’ancien README) | 8080 (comme dans `app.py`) |
 | **Documentation** | README + structure du repo | + Guide de reproduction dans `docs/` |
+| **Nouvelle soumission** | Réinitialisation partielle | Réinitialisation complète : tous les champs vidés, totaux par défaut, signature effacée |
 
 ---
 
@@ -179,6 +182,73 @@ bcs-quote-voice/
 docker build -t bcs-quote-voice .
 docker run -p 8080:8080 --env-file .env bcs-quote-voice
 ```
+
+---
+
+## Partir de zéro ou pour un autre client
+
+Guide pour lancer cette application from scratch ou l’adapter pour un autre client : ce qu’il faut, les coûts, les étapes et le résultat final.
+
+### Ce qu’il vous faut (prix / coûts)
+
+| Élément | Rôle | Coût indicatif |
+|--------|------|----------------|
+| **OpenAI (Whisper)** | Transcription audio → texte | Facturation à l’usage (quelques $ / million de caractères). Compte sur platform.openai.com. |
+| **Anthropic (Claude)** | Analyse du texte → champs structurés (client, service, options) | Facturation à l’usage. Compte sur console.anthropic.com. |
+| **Notion** (optionnel) | Base de données soumissions + contacts | Gratuit jusqu’à un certain volume ; puis forfait par utilisateur. |
+| **SMTP / email** (optionnel) | Envoi du PDF au client | Gratuit avec Gmail (mot de passe d’application) ou fournisseur email. |
+| **Hébergement** (optionnel) | Servir l’app en production | Variable (ex. Railway, Render, VPS). Peut rester en local (localhost) pour usage interne. |
+
+**Minimum pour faire tourner l’app (dictée + écrit + enregistrement + formulaire + PDF)** : OpenAI + Anthropic. Le reste (Notion, email, déploiement) est optionnel.
+
+### Prérequis
+
+1. **Compte OpenAI** : créer une clé API (Whisper).
+2. **Compte Anthropic** : créer une clé API (Claude).
+3. **Fichier `.env`** : copier `.env.example` en `.env` et y mettre les clés (jamais commiter `.env`).
+4. **Python 3** et `pip` (ou environnement virtuel recommandé).
+
+### Étapes : ce qui manque (partir de zéro ou autre client)
+
+Si vous **partez de zéro** (nouveau projet) :
+
+1. Cloner ou copier ce dépôt.
+2. Créer un environnement virtuel : `python -m venv venv` puis activer.
+3. Installer les dépendances : `pip install -r requirements.txt`.
+4. Créer `.env` à la racine avec au minimum `OPENAI_API_KEY` et `ANTHROPIC_API_KEY`.
+5. Lancer : `python app.py` puis ouvrir http://localhost:8080.
+6. (Optionnel) Renseigner Notion et SMTP dans `.env` si vous voulez historique et envoi d’emails.
+
+Si vous **adaptez pour un autre client** (autre domaine métier) :
+
+1. **Backend**  
+   - Garder la structure (Flask, `create-from-text`, `update-session`, `process-voice`).  
+   - Dans `config.py` : adapter les constantes (tarifs, catégories, types de service, add-ons).  
+   - Dans `ai_parser.py` : modifier le prompt système et la structure JSON pour les nouveaux champs.  
+   - Dans `pdf_generator.py` / `calculate_totals` : adapter les calculs aux nouveaux tarifs.
+
+2. **Frontend**  
+   - Garder la vue split, les trois modes (Dictée, Écrit, Enregistrement) et le debounce.  
+   - Dans `index.html` : adapter les libellés, les listes déroulantes (catégories, types, heures), les add-ons et les champs du formulaire pour qu’ils correspondent aux nouveaux `data` renvoyés par l’API.
+
+3. **Données**  
+   - La structure de session reste du type : `transcription`, `data` (champs métier), `totals`, `created_at`. Seuls les clés dans `data` et la logique des totaux changent.
+
+4. **Documentation**  
+   - Utiliser `docs/GUIDE_REPRODUCTION_APPLICATION_SIMILAIRE.md` comme checklist (endpoints, flux, structure des données).
+
+### Résultat final
+
+À la fin vous avez :
+
+- Une app qui démarre (avec ou sans Notion/SMTP).
+- Trois façons de saisir : **dictée** (navigateur), **écrit** (texte + Analyser et remplir), **enregistrement** (audio).
+- Un **panneau droit** avec la soumission en direct (transcription, formulaire, totaux, signature).
+- Création de session depuis le texte (`create-from-text`) et complétion avec « Ajouter par dictée » ou nouveau texte (`update-session` + `additional_text`).
+- **Nouvelle soumission** qui remet tout à zéro (formulaire vide, totaux par défaut).
+- Génération PDF, envoi par email et synchro Notion si configurés.
+
+Pour une autre app / un autre client : même expérience utilisateur, avec vos propres champs, tarifs et libellés.
 
 ---
 
