@@ -1,7 +1,6 @@
 """
 BIEN CHEZ SOI - Configuration
 Variables d'environnement, tarification complète et constantes
-Les Entreprises REMES Inc. / Fiducie Ramahime
 """
 
 import os
