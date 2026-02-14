@@ -14,9 +14,23 @@ _project_dir = Path(__file__).resolve().parent
 _env_path = _project_dir / '.env'
 if not _env_path.exists():
     _env_path = _project_dir / '.env.example'
-load_dotenv(_env_path, override=True)
-# Pour débogage au démarrage (chemin uniquement, pas les valeurs)
+# Ouvrir le fichier explicitement pour éviter tout souci de chemin/encodage
 CONFIG_LOADED_FROM = str(_env_path)
+if _env_path.exists():
+    try:
+        with open(_env_path, 'r', encoding='utf-8') as f:
+            load_dotenv(stream=f, override=True)
+        # Secours: si dotenv n'a pas mis les clés (encodage, etc.), parser nous-mêmes
+        with open(_env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, _, value = line.partition('=')
+                    key, value = key.strip(), value.strip()
+                    if key and value and not value.startswith('#'):
+                        os.environ[key] = value
+    except Exception:
+        pass
 
 
 class Config:
